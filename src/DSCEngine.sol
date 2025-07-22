@@ -110,14 +110,14 @@ contract DSCEngine is ReentrancyGuard {
         i_dsc = DecentralizedStableCoin(dscAddress);
     }
 
-    //////////////////////////AggregatorV3Interface
+    //////////////////////////
     // External Functions   //
     //////////////////////////
 
     function depositCollateralAndMintDsc() external {}
 
     /**
-     * @notice follows CEIAggregatorV3Interface
+     * @notice follows CEI
      * @param tokenCollateralAddress The address of the token to deposit as collateral
      * @param amountCollateral The amount of collateral to deposit
      */
