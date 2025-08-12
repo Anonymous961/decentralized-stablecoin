@@ -48,14 +48,34 @@ jobs:
           echo "coverage=$COVERAGE" >> $GITHUB_OUTPUT
           echo "![Coverage](https://img.shields.io/badge/coverage-$COVERAGE%25-green)" > coverage_badge.md
 
-      - name: Update README.md
+      - name: Update README.md with coverage table
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          sed -i '/!\[Coverage\]/d' README.md
-          cat coverage_badge.md >> README.md
+          # Run coverage and save summary
+          forge coverage --report lcov --report summary > coverage_summary.txt
+          genhtml lcov.info -o coverage --branch-coverage
+
+          # Format summary as markdown table/code block
+          echo "## Solidity Coverage Report" > coverage_section.md
+          echo "" >> coverage_section.md
+          echo '```' >> coverage_section.md
+          cat coverage_summary.txt >> coverage_section.md
+          echo '```' >> coverage_section.md
+
+          # Remove old coverage section from README (between markers if present)
+          sed -i '/<!-- COVERAGE-START -->/,/<!-- COVERAGE-END -->/d' README.md
+
+          # Add new coverage section with markers
+          {
+            echo "<!-- COVERAGE-START -->"
+            cat coverage_section.md
+            echo "<!-- COVERAGE-END -->"
+          } >> README.md
+
+          # Commit changes
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add README.md
-          git commit -m "Update coverage badge" || echo "No changes to commit"
+          git commit -m "Update coverage report" || echo "No changes to commit"
           git push "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
