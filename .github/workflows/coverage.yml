@@ -7,6 +7,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y lcov  # Required for genhtml
+
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
