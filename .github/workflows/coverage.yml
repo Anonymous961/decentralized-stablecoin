@@ -24,22 +24,27 @@ jobs:
 
       - name: Generate coverage badge
         run: |
-          # Method 1: Use Foundry's native summary (recommended)
-          COVERAGE=$(forge coverage --report summary | grep "Total" | awk '{print $2}' | grep -o '[0-9]*')
+          # Run coverage summary and extract percentage
+          SUMMARY_OUTPUT=$(forge coverage --report summary)
+          echo "$SUMMARY_OUTPUT"
 
-          # Fallback to HTML report if needed
-          if [ -z "$COVERAGE" ] && [ -f "coverage/index.html" ]; then
-          COVERAGE=$(grep -E -o 'TOTAL.*[0-9]{1,3}\%' coverage/index.html | grep -E -o '[0-9]{1,3}' | head -1)
+          # Match either "Total" or the summary line with percentage
+          COVERAGE=$(echo "$SUMMARY_OUTPUT" | grep -Eo '[0-9]+\.[0-9]+%|[0-9]+%' | head -1 | tr -d '%')
+
+          # Fallback: parse from lcov.info if summary parsing fails
+          if [ -z "$COVERAGE" ] && [ -f "lcov.info" ]; then
+            COVERAGE=$(grep -A1 "end_of_record" lcov.info | grep -Eo "LF:[0-9]+" | awk '{sum+=$1} END {if (NR>0) print int((sum/NR)*100)}')
           fi
 
           # Verify we got a value
           if [ -z "$COVERAGE" ]; then
-          echo "ERROR: Could not determine coverage percentage"
-          exit 1
+            echo "ERROR: Could not determine coverage percentage"
+            exit 1
           fi
 
           echo "coverage=$COVERAGE" >> $GITHUB_OUTPUT
           echo "![Coverage](https://img.shields.io/badge/coverage-$COVERAGE%25-green)" > coverage_badge.md
+
       - name: Update README.md
         run: |
           # Replace or add the coverage badge in README.md
