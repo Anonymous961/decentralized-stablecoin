@@ -6,3 +6,4 @@
 3. Collateral: Exogenous(Crypto)
    1. wEth
    2. wBTC
+![Coverage](https://img.shields.io/badge/coverage-0.00%25-green)
